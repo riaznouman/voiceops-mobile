@@ -1,23 +1,15 @@
-import { View, Text, StyleSheet } from "react-native";
+import { Redirect } from "expo-router";
+import { useSelector } from "react-redux";
+import { RootState } from "../src/store";
 
-export default function HomeScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>VoiceOps</Text>
-      <Text>Welcome to VoiceOps</Text>
-    </View>
+export default function Index() {
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated
   );
-}
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-});
+  if (isAuthenticated) {
+    return <Redirect href="/(app)/(tabs)/dashboard" />;
+  }
+
+  return <Redirect href="/(auth)/login" />;
+}
