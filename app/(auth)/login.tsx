@@ -6,6 +6,10 @@ export default function LoginScreen() {
 
   const handleLogin = () => {
     // TODO: add real login logic later
+    // store the login token in storage
+    // check the verification
+    // if verified then navigate to dashboard
+    // if not verified then navigate to verifiaction screen
     router.replace("/(app)/(tabs)/dashboard");
   };
 
