@@ -9,23 +9,28 @@ import {
   Platform,
   ScrollView,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../../src/store";
-import { setLoading } from "../../src/features/auth/authSlice";
+import { setCredentials } from "../../src/features/auth/authSlice";
+import { useLoginMutation } from "../../src/features/auth/authApi";
+import { storage } from "../../src/services/storage";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginScreen() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
+  const [loginMutation, { isLoading }] = useLoginMutation();
   const passwordRef = useRef<TextInput>(null);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState({ email: false, password: false });
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const emailError = !email.trim()
     ? "Email is required"
@@ -41,15 +46,30 @@ export default function LoginScreen() {
 
   const isFormValid = !emailError && !passwordError;
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     setTouched({ email: true, password: true });
     if (!isFormValid) return;
 
-    dispatch(setLoading(true));
-    console.log({ email: email.trim().toLowerCase(), password });
+    setApiError(null);
 
-    // TODO: replace with real auth once login API is wired
-    router.replace("/(app)/(tabs)/dashboard");
+    try {
+      const result = await loginMutation({
+        email: email.trim().toLowerCase(),
+        password,
+      }).unwrap();
+
+      await storage.saveToken(result.token);
+      await storage.saveUser(result.user);
+      dispatch(setCredentials({ user: result.user, token: result.token }));
+      router.replace("/(app)/(tabs)/dashboard");
+    } catch (err: any) {
+      const status = err?.status;
+      if (status === 401) {
+        setApiError("Invalid email or password.");
+      } else {
+        setApiError("Could not connect, please try again.");
+      }
+    }
   };
 
   return (
@@ -81,14 +101,18 @@ export default function LoginScreen() {
               placeholder="Enter your email"
               placeholderTextColor="#9CA3AF"
               value={email}
-              onChangeText={setEmail}
-              onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+              onChangeText={(t) => {
+                setEmail(t);
+                setApiError(null);
+              }}
+              onBlur={() => setTouched((v) => ({ ...v, email: true }))}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
               autoCorrect={false}
               returnKeyType="next"
               onSubmitEditing={() => passwordRef.current?.focus()}
+              editable={!isLoading}
             />
             {touched.email && emailError ? (
               <Text style={styles.errorText}>{emailError}</Text>
@@ -109,12 +133,16 @@ export default function LoginScreen() {
                 placeholder="Enter your password"
                 placeholderTextColor="#9CA3AF"
                 value={password}
-                onChangeText={setPassword}
-                onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+                onChangeText={(t) => {
+                  setPassword(t);
+                  setApiError(null);
+                }}
+                onBlur={() => setTouched((v) => ({ ...v, password: true }))}
                 secureTextEntry={!showPassword}
                 autoComplete="password"
                 returnKeyType="done"
                 onSubmitEditing={handleSignIn}
+                editable={!isLoading}
               />
               <Pressable
                 style={styles.toggleBtn}
@@ -131,14 +159,26 @@ export default function LoginScreen() {
             ) : null}
           </View>
 
+          {/* API error */}
+          {apiError ? (
+            <Text style={styles.apiError}>{apiError}</Text>
+          ) : null}
+
           {/* Submit */}
           <TouchableOpacity
-            style={[styles.button, !isFormValid && styles.buttonDisabled]}
+            style={[
+              styles.button,
+              (!isFormValid || isLoading) && styles.buttonDisabled,
+            ]}
             onPress={handleSignIn}
-            disabled={!isFormValid}
+            disabled={!isFormValid || isLoading}
             activeOpacity={0.8}
           >
-            <Text style={styles.buttonText}>Sign In</Text>
+            {isLoading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.buttonText}>Sign In</Text>
+            )}
           </TouchableOpacity>
 
           <Pressable
@@ -207,6 +247,12 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 13,
     color: "#EF4444",
+  },
+  apiError: {
+    fontSize: 14,
+    color: "#EF4444",
+    textAlign: "center",
+    marginTop: -4,
   },
   passwordWrapper: {
     position: "relative",
