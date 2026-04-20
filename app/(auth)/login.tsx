@@ -35,8 +35,8 @@ export default function LoginScreen() {
 
   const passwordError = !password
     ? "Password is required"
-    : password.length < 6
-    ? "Password must be at least 6 characters"
+    : password.length < 8
+    ? "Password must be at least 8 characters"
     : "";
 
   const isFormValid = !emailError && !passwordError;
@@ -140,6 +140,15 @@ export default function LoginScreen() {
           >
             <Text style={styles.buttonText}>Sign In</Text>
           </TouchableOpacity>
+
+          <Pressable
+            style={styles.forgotPassword}
+            onPress={() => {
+              // TODO: navigate to forgot password screen once it exists
+            }}
+          >
+            <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+          </Pressable>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -231,5 +240,13 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  forgotPassword: {
+    alignItems: "center",
+    marginTop: 4,
+  },
+  forgotPasswordText: {
+    fontSize: 13,
+    color: "#6B7280",
   },
 });
