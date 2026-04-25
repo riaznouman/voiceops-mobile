@@ -7,7 +7,34 @@ import {
 } from "react-native";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../src/store";
-import { useGetJobsQuery, Job } from "../../../src/features/jobs/jobsApi";
+import { useGetJobsQuery, Job, JobStatus } from "../../../src/features/jobs/jobsApi";
+
+const STATUS_LABEL: Record<JobStatus, string> = {
+  PENDING: "Pending",
+  EN_ROUTE: "En Route",
+  ON_SITE: "On Site",
+  IN_PROGRESS: "In Progress",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
+};
+
+const STATUS_BG: Record<JobStatus, string> = {
+  PENDING: "#FEF3C7",
+  EN_ROUTE: "#DBEAFE",
+  ON_SITE: "#E0E7FF",
+  IN_PROGRESS: "#EDE9FE",
+  COMPLETED: "#D1FAE5",
+  CANCELLED: "#FEE2E2",
+};
+
+const STATUS_FG: Record<JobStatus, string> = {
+  PENDING: "#B45309",
+  EN_ROUTE: "#1D4ED8",
+  ON_SITE: "#4338CA",
+  IN_PROGRESS: "#6D28D9",
+  COMPLETED: "#047857",
+  CANCELLED: "#B91C1C",
+};
 
 function startOfDay(d: Date): number {
   const x = new Date(d);
@@ -42,6 +69,10 @@ export default function DashboardScreen() {
     (j) => j.status === "COMPLETED" && isToday(j.scheduledAt)
   ).length;
 
+  const currentJob = jobs.find(
+    (j) => j.status === "IN_PROGRESS" || j.status === "ON_SITE"
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -72,7 +103,52 @@ export default function DashboardScreen() {
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
-      ) : null}
+      ) : (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Current Job</Text>
+          {currentJob ? (
+            <View style={styles.currentCard}>
+              <View
+                style={[
+                  styles.currentBadge,
+                  { backgroundColor: STATUS_BG[currentJob.status] },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.currentBadgeText,
+                    { color: STATUS_FG[currentJob.status] },
+                  ]}
+                >
+                  {STATUS_LABEL[currentJob.status]}
+                </Text>
+              </View>
+              <Text style={styles.currentCustomer}>
+                {currentJob.customer.name}
+              </Text>
+              <Text style={styles.currentAddress}>
+                {currentJob.customer.address}
+              </Text>
+              <Text style={styles.currentService}>
+                {currentJob.service.name}
+              </Text>
+              <TouchableOpacity
+                style={styles.continueBtn}
+                activeOpacity={0.8}
+                onPress={() => {
+                  // TODO: navigate to job detail (Sprint 2)
+                }}
+              >
+                <Text style={styles.continueText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyText}>No active job</Text>
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -135,4 +211,54 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   retryButtonText: { color: "#fff", fontSize: 14, fontWeight: "600" },
+
+  section: { paddingHorizontal: 16, marginBottom: 16 },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#6B7280",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  currentCard: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 10,
+    padding: 16,
+  },
+  currentBadge: {
+    alignSelf: "stretch",
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  currentBadgeText: { fontSize: 13, fontWeight: "700", letterSpacing: 0.4 },
+  currentCustomer: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  currentAddress: { fontSize: 13, color: "#6B7280", marginBottom: 6 },
+  currentService: { fontSize: 14, color: "#374151", marginBottom: 12 },
+  continueBtn: {
+    backgroundColor: "#2563EB",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  continueText: { color: "#fff", fontSize: 15, fontWeight: "600" },
+
+  emptyCard: {
+    backgroundColor: "#F9FAFB",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center",
+  },
+  emptyText: { fontSize: 14, color: "#6B7280" },
 });
