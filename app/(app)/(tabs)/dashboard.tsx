@@ -4,6 +4,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  ScrollView,
+  RefreshControl,
 } from "react-native";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../src/store";
@@ -61,7 +63,7 @@ export default function DashboardScreen() {
   const firstName = userName?.split(/\s+/)[0] ?? "";
   const today = new Date();
 
-  const { data, isLoading, isError, refetch } = useGetJobsQuery();
+  const { data, isLoading, isFetching, isError, refetch } = useGetJobsQuery();
   const jobs: Job[] = data ?? [];
 
   const todayCount = jobs.filter((j) => isToday(j.scheduledAt)).length;
@@ -98,100 +100,112 @@ export default function DashboardScreen() {
         <Text style={styles.date}>{formatLongDate(today)}</Text>
       </View>
 
-      <View style={styles.statsRow}>
-        <StatCard label="Today" value={todayCount} />
-        <StatCard label="In Progress" value={inProgressCount} />
-        <StatCard label="Completed today" value={completedTodayCount} />
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching && !isLoading}
+            onRefresh={refetch}
+            tintColor="#2563EB"
+            colors={["#2563EB"]}
+          />
+        }
+      >
+        <View style={styles.statsRow}>
+          <StatCard label="Today" value={todayCount} />
+          <StatCard label="In Progress" value={inProgressCount} />
+          <StatCard label="Completed today" value={completedTodayCount} />
+        </View>
 
-      {isLoading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#2563EB" />
-        </View>
-      ) : isError ? (
-        <View style={styles.centered}>
-          <Text style={styles.errorText}>Could not load dashboard.</Text>
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={() => refetch()}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.retryButtonText}>Retry</Text>
-          </TouchableOpacity>
-        </View>
-      ) : hasNoJobs ? (
-        <View style={styles.noJobsWrap}>
-          <Text style={styles.noJobsText}>You have no jobs assigned.</Text>
-        </View>
-      ) : (
-        <>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Current Job</Text>
-            {currentJob ? (
-              <View style={styles.currentCard}>
-                <View
-                  style={[
-                    styles.currentBadge,
-                    { backgroundColor: STATUS_BG[currentJob.status] },
-                  ]}
-                >
-                  <Text
+        {isLoading ? (
+          <View style={styles.centered}>
+            <ActivityIndicator size="large" color="#2563EB" />
+          </View>
+        ) : isError ? (
+          <View style={styles.centered}>
+            <Text style={styles.errorText}>Could not load dashboard.</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => refetch()}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : hasNoJobs ? (
+          <View style={styles.noJobsWrap}>
+            <Text style={styles.noJobsText}>You have no jobs assigned.</Text>
+          </View>
+        ) : (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Current Job</Text>
+              {currentJob ? (
+                <View style={styles.currentCard}>
+                  <View
                     style={[
-                      styles.currentBadgeText,
-                      { color: STATUS_FG[currentJob.status] },
+                      styles.currentBadge,
+                      { backgroundColor: STATUS_BG[currentJob.status] },
                     ]}
                   >
-                    {STATUS_LABEL[currentJob.status]}
+                    <Text
+                      style={[
+                        styles.currentBadgeText,
+                        { color: STATUS_FG[currentJob.status] },
+                      ]}
+                    >
+                      {STATUS_LABEL[currentJob.status]}
+                    </Text>
+                  </View>
+                  <Text style={styles.currentCustomer}>
+                    {currentJob.customer.name}
+                  </Text>
+                  <Text style={styles.currentAddress}>
+                    {currentJob.customer.address}
+                  </Text>
+                  <Text style={styles.currentService}>
+                    {currentJob.service.name}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.continueBtn}
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      // TODO: navigate to job detail (Sprint 2)
+                    }}
+                  >
+                    <Text style={styles.continueText}>Continue</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.emptyCard}>
+                  <Text style={styles.emptyText}>No active job</Text>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Upcoming</Text>
+              {upcoming.length === 0 ? (
+                <View style={styles.emptyCard}>
+                  <Text style={styles.emptyText}>
+                    Nothing scheduled. Enjoy the break.
                   </Text>
                 </View>
-                <Text style={styles.currentCustomer}>
-                  {currentJob.customer.name}
-                </Text>
-                <Text style={styles.currentAddress}>
-                  {currentJob.customer.address}
-                </Text>
-                <Text style={styles.currentService}>
-                  {currentJob.service.name}
-                </Text>
-                <TouchableOpacity
-                  style={styles.continueBtn}
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    // TODO: navigate to job detail (Sprint 2)
-                  }}
-                >
-                  <Text style={styles.continueText}>Continue</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View style={styles.emptyCard}>
-                <Text style={styles.emptyText}>No active job</Text>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Upcoming</Text>
-            {upcoming.length === 0 ? (
-              <View style={styles.emptyCard}>
-                <Text style={styles.emptyText}>
-                  Nothing scheduled. Enjoy the break.
-                </Text>
-              </View>
-            ) : (
-              upcoming.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  onPress={() => {
-                    // TODO: navigate to job detail (Sprint 2)
-                  }}
-                />
-              ))
-            )}
-          </View>
-        </>
-      )}
+              ) : (
+                upcoming.map((job) => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    onPress={() => {
+                      // TODO: navigate to job detail (Sprint 2)
+                    }}
+                  />
+                ))
+              )}
+            </View>
+          </>
+        )}
+      </ScrollView>
     </View>
   );
 }
@@ -207,6 +221,7 @@ function StatCard({ label, value }: { label: string; value: number }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
+  scrollContent: { flexGrow: 1, paddingBottom: 24 },
   header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 },
   greeting: { fontSize: 22, fontWeight: "700", color: "#111827" },
   date: { fontSize: 13, color: "#6B7280", marginTop: 4 },
