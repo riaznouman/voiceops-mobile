@@ -64,7 +64,7 @@ export default function DashboardScreen() {
   const today = new Date();
 
   const { data, isLoading, isFetching, isError, refetch } = useGetJobsQuery();
-  const jobs: Job[] = data ?? [];
+  const jobs: Job[] = Array.isArray(data) ? data : [];
 
   const todayCount = jobs.filter((j) => isToday(j.scheduledAt)).length;
   const inProgressCount = jobs.filter((j) => j.status === "IN_PROGRESS").length;

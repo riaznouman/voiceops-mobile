@@ -52,7 +52,10 @@ function buildRows(jobs: Job[]): Row[] {
 export default function JobsScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetJobsQuery();
 
-  const rows = useMemo(() => buildRows(data ?? []), [data]);
+  const rows = useMemo(
+    () => buildRows(Array.isArray(data) ? data : []),
+    [data]
+  );
 
   if (isLoading) {
     return (
