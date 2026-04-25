@@ -1,14 +1,14 @@
 import { baseApi } from "../../services/api";
 
 export type JobStatus =
-  | "assigned"
-  | "en_route"
-  | "in_progress"
-  | "completed"
-  | "cancelled"
-  | "draft";
+  | "PENDING"
+  | "EN_ROUTE"
+  | "ON_SITE"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "CANCELLED";
 
-export type JobPriority = "low" | "normal" | "high" | "urgent";
+export type JobPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
 
 export type Job = {
   id: string;

@@ -7,19 +7,19 @@ type JobCardProps = {
 };
 
 const STATUS_CONFIG: Record<JobStatus, { label: string; color: string; bg: string }> = {
-  assigned: { label: "Assigned", color: "#B45309", bg: "#FEF3C7" },
-  en_route: { label: "En Route", color: "#1D4ED8", bg: "#DBEAFE" },
-  in_progress: { label: "In Progress", color: "#6D28D9", bg: "#EDE9FE" },
-  completed: { label: "Completed", color: "#047857", bg: "#D1FAE5" },
-  cancelled: { label: "Cancelled", color: "#B91C1C", bg: "#FEE2E2" },
-  draft: { label: "Draft", color: "#374151", bg: "#F3F4F6" },
+  PENDING: { label: "Pending", color: "#B45309", bg: "#FEF3C7" },
+  EN_ROUTE: { label: "En Route", color: "#1D4ED8", bg: "#DBEAFE" },
+  ON_SITE: { label: "On Site", color: "#4338CA", bg: "#E0E7FF" },
+  IN_PROGRESS: { label: "In Progress", color: "#6D28D9", bg: "#EDE9FE" },
+  COMPLETED: { label: "Completed", color: "#047857", bg: "#D1FAE5" },
+  CANCELLED: { label: "Cancelled", color: "#B91C1C", bg: "#FEE2E2" },
 };
 
 const PRIORITY_COLOR: Record<JobPriority, string> = {
-  low: "#9CA3AF",
-  normal: "#6B7280",
-  high: "#F59E0B",
-  urgent: "#EF4444",
+  LOW: "#9CA3AF",
+  NORMAL: "#6B7280",
+  HIGH: "#F59E0B",
+  URGENT: "#EF4444",
 };
 
 function formatTime(iso: string): string {
@@ -28,8 +28,8 @@ function formatTime(iso: string): string {
 }
 
 export function JobCard({ job, onPress }: JobCardProps) {
-  const status = STATUS_CONFIG[job.status] ?? STATUS_CONFIG.draft;
-  const priorityColor = PRIORITY_COLOR[job.priority] ?? PRIORITY_COLOR.normal;
+  const status = STATUS_CONFIG[job.status] ?? STATUS_CONFIG.PENDING;
+  const priorityColor = PRIORITY_COLOR[job.priority] ?? PRIORITY_COLOR.NORMAL;
 
   return (
     <Pressable
