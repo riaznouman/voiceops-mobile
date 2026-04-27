@@ -63,11 +63,15 @@ export default function LoginScreen() {
       dispatch(setCredentials({ user: result.user, token: result.token }));
       router.replace("/(app)/(tabs)/dashboard");
     } catch (err: any) {
+      console.warn("[login] error", err);
       const status = err?.status;
       if (status === 401) {
         setApiError("Invalid email or password.");
+      } else if (status === "FETCH_ERROR") {
+        setApiError(`Network error: ${err?.error ?? "could not reach server"}`);
       } else {
-        setApiError("Could not connect, please try again.");
+        const detail = err?.data?.message ?? err?.error ?? `status ${status ?? "?"}`;
+        setApiError(`Could not connect: ${detail}`);
       }
     }
   };
