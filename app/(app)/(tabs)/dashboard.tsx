@@ -7,6 +7,7 @@ import {
   ScrollView,
   RefreshControl,
 } from "react-native";
+import { router } from "expo-router";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../src/store";
 import { useGetJobsQuery, Job, JobStatus } from "../../../src/features/jobs/jobsApi";
@@ -169,9 +170,7 @@ export default function DashboardScreen() {
                   <TouchableOpacity
                     style={styles.continueBtn}
                     activeOpacity={0.8}
-                    onPress={() => {
-                      // TODO: navigate to job detail (Sprint 2)
-                    }}
+                    onPress={() => router.push(`/jobs/${currentJob.id}`)}
                   >
                     <Text style={styles.continueText}>Continue</Text>
                   </TouchableOpacity>
@@ -196,9 +195,7 @@ export default function DashboardScreen() {
                   <JobCard
                     key={job.id}
                     job={job}
-                    onPress={() => {
-                      // TODO: navigate to job detail (Sprint 2)
-                    }}
+                    onPress={() => router.push(`/jobs/${job.id}`)}
                   />
                 ))
               )}
