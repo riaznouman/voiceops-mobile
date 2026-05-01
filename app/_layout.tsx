@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Stack, router } from "expo-router";
 import { Provider, useDispatch, useSelector } from "react-redux";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { store, AppDispatch, RootState } from "../src/store";
 import { setCredentials } from "../src/features/auth/authSlice";
 import { storage } from "../src/services/storage";
@@ -37,13 +38,15 @@ function AuthBootstrap() {
 
 export default function RootLayout() {
   return (
-    <Provider store={store}>
-      <AuthBootstrap />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(app)" />
-      </Stack>
-    </Provider>
+    <SafeAreaProvider>
+      <Provider store={store}>
+        <AuthBootstrap />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(app)" />
+        </Stack>
+      </Provider>
+    </SafeAreaProvider>
   );
 }
