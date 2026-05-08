@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
+import { router } from "expo-router";
 import { useGetJobsQuery, Job } from "../../../src/features/jobs/jobsApi";
 import { JobCard } from "../../../src/components/jobs/JobCard";
 
@@ -114,9 +115,7 @@ export default function JobsScreen() {
           ) : (
             <JobCard
               job={item.job}
-              onPress={() => {
-                // TODO: navigate to job detail screen (Sprint 2)
-              }}
+              onPress={() => router.push(`/jobs/${item.job.id}`)}
             />
           )
         }
