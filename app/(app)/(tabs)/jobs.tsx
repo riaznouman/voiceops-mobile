@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useGetJobsQuery, Job } from "../../../src/features/jobs/jobsApi";
 import { JobCard } from "../../../src/components/jobs/JobCard";
@@ -60,15 +61,15 @@ export default function JobsScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
+      <SafeAreaView style={styles.centered} edges={["top"]}>
         <ActivityIndicator size="large" color="#2563EB" />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (isError) {
     return (
-      <View style={styles.centered}>
+      <SafeAreaView style={styles.centered} edges={["top"]}>
         <Text style={styles.errorText}>Could not load jobs.</Text>
         <TouchableOpacity
           style={styles.retryButton}
@@ -77,12 +78,12 @@ export default function JobsScreen() {
         >
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
         <Text style={styles.title}>Jobs</Text>
       </View>
@@ -120,7 +121,7 @@ export default function JobsScreen() {
           )
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
