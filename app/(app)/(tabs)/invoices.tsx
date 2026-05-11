@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import {
   useGetInvoicesQuery,
@@ -78,40 +79,25 @@ export default function InvoicesScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={["top"]}>
         <View style={styles.header}>
           <Text style={styles.title}>Invoices</Text>
         </View>
         {[1, 2, 3, 4].map((k) => (
           <SkeletonRow key={k} />
         ))}
-      </View>
-    );
-  }
-
-  if (isError) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>Could not load invoices.</Text>
-        <TouchableOpacity
-          style={styles.retryBtn}
-          onPress={() => refetch()}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.retryBtnText}>Retry</Text>
-        </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
         <Text style={styles.title}>Invoices</Text>
       </View>
 
       <FlatList
-        data={invoices}
+        data={isError ? [] : invoices}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         refreshControl={
@@ -133,7 +119,7 @@ export default function InvoicesScreen() {
         renderItem={({ item }) => <InvoiceRow invoice={item} />}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
