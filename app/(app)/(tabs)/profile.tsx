@@ -9,10 +9,13 @@ import {
   Alert,
 } from "react-native";
 import { useDispatch } from "react-redux";
+import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { AppDispatch } from "../../../src/store";
 import { useGetMeQuery } from "../../../src/features/auth/authApi";
 import { logout } from "../../../src/features/auth/authSlice";
 import { storage } from "../../../src/services/storage";
+import { unregisterPush } from "../../../src/services/push";
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -61,6 +64,7 @@ export default function ProfileScreen() {
         text: "Sign Out",
         style: "destructive",
         onPress: async () => {
+          await unregisterPush();
           dispatch(logout());
           await storage.removeToken();
           await storage.removeUser();
@@ -71,15 +75,15 @@ export default function ProfileScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
+      <SafeAreaView style={styles.centered} edges={["top"]}>
         <ActivityIndicator size="large" color="#2563EB" />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (isError || !data) {
     return (
-      <View style={styles.centered}>
+      <SafeAreaView style={styles.centered} edges={["top"]}>
         <Text style={styles.errorText}>Could not load profile.</Text>
         <TouchableOpacity
           style={styles.retryButton}
@@ -88,12 +92,13 @@ export default function ProfileScreen() {
         >
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.headerCard}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{getInitials(data.name)}</Text>
@@ -118,9 +123,38 @@ export default function ProfileScreen() {
         />
       </View>
 
-      <TouchableOpacity style={styles.editButton} activeOpacity={0.8}>
-        {/* TODO Sprint 2 — wire to edit profile form */}
+      <TouchableOpacity
+        style={styles.editButton}
+        activeOpacity={0.8}
+        onPress={() => router.push("/profile/edit")}
+      >
         <Text style={styles.editButtonText}>Edit profile</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.linkRow}
+        activeOpacity={0.8}
+        onPress={() => router.push("/profile/timesheets")}
+      >
+        <Text style={styles.linkRowText}>Hours</Text>
+        <Text style={styles.linkRowChevron}>›</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.linkRow}
+        activeOpacity={0.8}
+        onPress={() => router.push("/profile/expenses")}
+      >
+        <Text style={styles.linkRowText}>Expenses</Text>
+        <Text style={styles.linkRowChevron}>›</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.passwordButton}
+        activeOpacity={0.8}
+        onPress={() => router.push("/profile/password")}
+      >
+        <Text style={styles.passwordButtonText}>Change password</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -130,7 +164,8 @@ export default function ProfileScreen() {
       >
         <Text style={styles.signOutText}>Sign Out</Text>
       </TouchableOpacity>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -227,6 +262,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   editButtonText: { color: "#2563EB", fontSize: 15, fontWeight: "600" },
+  passwordButton: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  passwordButtonText: { color: "#374151", fontSize: 15, fontWeight: "600" },
+  linkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  linkRowText: { color: "#111827", fontSize: 15, fontWeight: "600" },
+  linkRowChevron: { color: "#9CA3AF", fontSize: 22, fontWeight: "300" },
   signOutButton: {
     backgroundColor: "#fff",
     borderWidth: 1,
