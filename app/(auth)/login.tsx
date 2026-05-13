@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../../src/store";
 import { setCredentials } from "../../src/features/auth/authSlice";
@@ -58,15 +59,23 @@ export default function LoginScreen() {
         password,
       }).unwrap();
 
+      if (result.user.role !== "TECHNICIAN") {
+        setApiError("This app is for technicians only. Please use the web portal.");
+        return;
+      }
+
       await storage.saveToken(result.token);
       await storage.saveUser(result.user);
       dispatch(setCredentials({ user: result.user, token: result.token }));
       router.replace("/(app)/(tabs)/dashboard");
     } catch (err: any) {
-      console.warn("[login] error", err);
       const status = err?.status;
       if (status === 401) {
         setApiError("Invalid email or password.");
+      } else if (status === 403 && err?.data?.code === "EMAIL_NOT_VERIFIED") {
+        setApiError("Your email is not verified. Please verify on the web first.");
+      } else if (status === 429) {
+        setApiError("Too many attempts. Please wait a minute and try again.");
       } else if (status === "FETCH_ERROR") {
         setApiError(`Network error: ${err?.error ?? "could not reach server"}`);
       } else {
@@ -77,6 +86,7 @@ export default function LoginScreen() {
   };
 
   return (
+    <SafeAreaView style={styles.flex} edges={["top", "bottom"]}>
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -185,17 +195,13 @@ export default function LoginScreen() {
             )}
           </TouchableOpacity>
 
-          <Pressable
-            style={styles.forgotPassword}
-            onPress={() => {
-              // TODO: navigate to forgot password screen once it exists
-            }}
-          >
-            <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-          </Pressable>
+          <Text style={styles.forgotPasswordText}>
+            Forgot password? Reset it on the web portal.
+          </Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
