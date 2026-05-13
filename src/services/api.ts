@@ -29,6 +29,7 @@ const baseQueryWithLogout: BaseQueryFn<
   const result = await rawBaseQuery(args, api, extraOptions);
   if (result.error && result.error.status === 401) {
     api.dispatch(logout());
+    api.dispatch(baseApi.util.resetApiState());
     await storage.removeToken();
     await storage.removeUser();
   }
@@ -46,6 +47,9 @@ export const baseApi = createApi({
     "WorkOrderActivity",
     "Invoice",
     "Service",
+    "TechDashboard",
+    "Timesheet",
+    "Expense",
   ],
   endpoints: () => ({}),
 });

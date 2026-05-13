@@ -16,6 +16,7 @@ import { useGetMeQuery } from "../../../src/features/auth/authApi";
 import { logout } from "../../../src/features/auth/authSlice";
 import { storage } from "../../../src/services/storage";
 import { unregisterPush } from "../../../src/services/push";
+import { baseApi } from "../../../src/services/api";
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -66,6 +67,7 @@ export default function ProfileScreen() {
         onPress: async () => {
           await unregisterPush();
           dispatch(logout());
+          dispatch(baseApi.util.resetApiState());
           await storage.removeToken();
           await storage.removeUser();
         },
