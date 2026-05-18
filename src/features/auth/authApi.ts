@@ -17,6 +17,8 @@ export type UserMe = {
 };
 
 type UpdateMeRequest = { name?: string; phone?: string };
+type ChangePasswordRequest = { currentPassword: string; newPassword: string };
+type ChangePasswordResponse = { ok: true };
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -39,8 +41,20 @@ export const authApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Auth"],
     }),
+    changePassword: builder.mutation<ChangePasswordResponse, ChangePasswordRequest>({
+      query: (body) => ({
+        url: "/users/me/password",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
-  overrideExisting: false,
+  overrideExisting: true,
 });
 
-export const { useLoginMutation, useGetMeQuery, useUpdateMeMutation } = authApi;
+export const {
+  useLoginMutation,
+  useGetMeQuery,
+  useUpdateMeMutation,
+  useChangePasswordMutation,
+} = authApi;

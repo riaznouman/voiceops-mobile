@@ -35,6 +35,7 @@ export type JobDetail = {
   service: { id: string; name: string };
   technicianId?: string;
   technician?: { id: string; name: string };
+  customerSignaturePath: string | null;
 };
 
 export type Note = {
@@ -131,6 +132,8 @@ export const jobsApi = baseApi.injectEndpoints({
           },
           technicianId: wo.technicianId as string | undefined,
           technician: wo.technician as JobDetail["technician"],
+          customerSignaturePath:
+            (wo.customerSignaturePath as string | null | undefined) ?? null,
         };
       },
       providesTags: (_r, _e, id) => [{ type: "WorkOrder", id }],
@@ -164,6 +167,8 @@ export const jobsApi = baseApi.injectEndpoints({
           },
           technicianId: wo.technicianId as string | undefined,
           technician: wo.technician as JobDetail["technician"],
+          customerSignaturePath:
+            (wo.customerSignaturePath as string | null | undefined) ?? null,
         };
       },
       invalidatesTags: (_r, _e, arg) => [
@@ -224,8 +229,33 @@ export const jobsApi = baseApi.injectEndpoints({
         pickArray<ActivityEntry>(resp),
       providesTags: (_r, _e, id) => [{ type: "WorkOrderActivity", id }],
     }),
+
+    uploadJobSignature: builder.mutation<
+      { url: string; signedAt: string },
+      { workOrderId: string; uri: string }
+    >({
+      query: ({ workOrderId, uri }) => {
+        const form = new FormData();
+        form.append("signature", {
+          uri,
+          name: `signature_${Date.now()}.png`,
+          type: "image/png",
+        } as unknown as Blob);
+        return {
+          url: `/work-orders/${workOrderId}/signature`,
+          method: "POST",
+          body: form,
+        };
+      },
+      transformResponse: (resp: unknown) =>
+        pickOne<{ url: string; signedAt: string }>(resp),
+      invalidatesTags: (_r, _e, arg) => [
+        { type: "WorkOrder", id: arg.workOrderId },
+        { type: "WorkOrderActivity", id: arg.workOrderId },
+      ],
+    }),
   }),
-  overrideExisting: false,
+  overrideExisting: true,
 });
 
 export const {
@@ -237,4 +267,5 @@ export const {
   useGetJobPhotosQuery,
   useUploadJobPhotoMutation,
   useGetJobActivityQuery,
+  useUploadJobSignatureMutation,
 } = jobsApi;

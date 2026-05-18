@@ -51,7 +51,7 @@ function pickArray<T>(resp: unknown): T[] {
 export const invoicesApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getInvoices: builder.query<Invoice[], void>({
-      query: () => "/invoices?technicianId=me",
+      query: () => "/invoices",
       transformResponse: (resp: unknown): Invoice[] => pickArray<Invoice>(resp),
       providesTags: ["Invoice"],
     }),
@@ -72,7 +72,7 @@ export const invoicesApi = baseApi.injectEndpoints({
       invalidatesTags: ["Invoice"],
     }),
   }),
-  overrideExisting: false,
+  overrideExisting: true,
 });
 
 export const {

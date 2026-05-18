@@ -29,8 +29,15 @@ import {
   Note,
   Photo,
   ActivityEntry,
-} from "../../../src/features/jobs/jobsApi";
+} from "../../../../src/features/jobs/jobsApi";
 import * as ImagePicker from "expo-image-picker";
+import { API_BASE_URL } from "../../../../src/config/env";
+
+function resolveAssetUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+}
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const PHOTO_SIZE = (SCREEN_WIDTH - 32 - 8) / 3;
@@ -133,6 +140,10 @@ export default function JobDetailScreen() {
   }
 
   async function handleStatusTransition(next: JobStatus, label: string) {
+    if (next === "COMPLETED") {
+      router.push(`/jobs/${id}/signature`);
+      return;
+    }
     Alert.alert(
       "Confirm",
       `Change status to "${STATUS_CONFIG[next].label}"?`,
@@ -184,6 +195,22 @@ export default function JobDetailScreen() {
     }
   }
 
+  async function uploadAsset(asset: ImagePicker.ImagePickerAsset) {
+    setUploadProgress(true);
+    try {
+      await uploadPhoto({
+        workOrderId: id!,
+        uri: asset.uri,
+        name: asset.fileName ?? `photo_${Date.now()}.jpg`,
+        mimeType: asset.mimeType ?? "image/jpeg",
+      }).unwrap();
+    } catch {
+      Alert.alert("Error", "Could not upload photo. Please try again.");
+    } finally {
+      setUploadProgress(false);
+    }
+  }
+
   async function handlePickPhoto() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -196,20 +223,23 @@ export default function JobDetailScreen() {
       quality: 0.8,
     });
     if (!result.canceled && result.assets?.[0]) {
-      const asset = result.assets[0];
-      setUploadProgress(true);
-      try {
-        await uploadPhoto({
-          workOrderId: id!,
-          uri: asset.uri,
-          name: asset.fileName ?? `photo_${Date.now()}.jpg`,
-          mimeType: asset.mimeType ?? "image/jpeg",
-        }).unwrap();
-      } catch {
-        Alert.alert("Error", "Could not upload photo. Please try again.");
-      } finally {
-        setUploadProgress(false);
-      }
+      await uploadAsset(result.assets[0]);
+    }
+  }
+
+  async function handleTakePhoto() {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permission required", "Allow camera access to take photos.");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets?.[0]) {
+      await uploadAsset(result.assets[0]);
     }
   }
 
@@ -319,6 +349,7 @@ export default function JobDetailScreen() {
             loading={photosLoading}
             uploading={uploadProgress}
             onAddPhoto={handlePickPhoto}
+            onTakePhoto={handleTakePhoto}
             onPhotoPress={(uri) => setViewerUri(uri)}
           />
         )}
@@ -415,6 +446,18 @@ function OverviewTab({
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Technician</Text>
           <Text style={styles.cardPrimary}>{job.technician.name}</Text>
+        </View>
+      )}
+
+      {/* Signature block */}
+      {job.customerSignaturePath && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Customer Signature</Text>
+          <Image
+            source={{ uri: resolveAssetUrl(job.customerSignaturePath)! }}
+            style={styles.signatureImage}
+            resizeMode="contain"
+          />
         </View>
       )}
 
@@ -541,30 +584,49 @@ function PhotosTab({
   loading,
   uploading,
   onAddPhoto,
+  onTakePhoto,
   onPhotoPress,
 }: {
   photos: Photo[];
   loading: boolean;
   uploading: boolean;
   onAddPhoto: () => void;
+  onTakePhoto: () => void;
   onPhotoPress: (uri: string) => void;
 }) {
   return (
     <View style={styles.section}>
-      <TouchableOpacity
-        style={[styles.primaryBtn, uploading && styles.btnDisabled]}
-        onPress={onAddPhoto}
-        disabled={uploading}
-      >
-        {uploading ? (
-          <View style={styles.uploadingRow}>
-            <ActivityIndicator color="#fff" size="small" />
-            <Text style={[styles.primaryBtnText, { marginLeft: 8 }]}>Uploading…</Text>
-          </View>
-        ) : (
-          <Text style={styles.primaryBtnText}>+ Add Photo</Text>
-        )}
-      </TouchableOpacity>
+      <View style={styles.photoButtonRow}>
+        <TouchableOpacity
+          style={[
+            styles.primaryBtn,
+            styles.photoButton,
+            uploading && styles.btnDisabled,
+          ]}
+          onPress={onTakePhoto}
+          disabled={uploading}
+        >
+          <Text style={styles.primaryBtnText}>Take photo</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.secondaryBtn,
+            styles.photoButton,
+            uploading && styles.btnDisabled,
+          ]}
+          onPress={onAddPhoto}
+          disabled={uploading}
+        >
+          <Text style={styles.secondaryBtnText}>Choose from library</Text>
+        </TouchableOpacity>
+      </View>
+
+      {uploading && (
+        <View style={styles.uploadingBanner}>
+          <ActivityIndicator color="#2563EB" size="small" />
+          <Text style={styles.uploadingBannerText}>Uploading…</Text>
+        </View>
+      )}
 
       {loading ? (
         <ActivityIndicator color="#2563EB" style={{ marginTop: 16 }} />
@@ -807,6 +869,32 @@ const styles = StyleSheet.create({
     backgroundColor: "#F3F4F6",
   },
   uploadingRow: { flexDirection: "row", alignItems: "center" },
+  photoButtonRow: { flexDirection: "row", gap: 8 },
+  photoButton: { flex: 1, marginTop: 0 },
+  secondaryBtn: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#2563EB",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  secondaryBtnText: { color: "#2563EB", fontSize: 15, fontWeight: "600" },
+  uploadingBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 8,
+  },
+  uploadingBannerText: { color: "#2563EB", fontSize: 14, fontWeight: "500" },
+  signatureImage: {
+    width: "100%",
+    height: 140,
+    backgroundColor: "#F9FAFB",
+    borderRadius: 6,
+    marginTop: 6,
+  },
 
   // Activity timeline
   timelineItem: {
