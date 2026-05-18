@@ -183,15 +183,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingTop: 80,
+    paddingHorizontal: 32,
   },
   emptyText: {
     fontSize: 16,
     fontWeight: "600",
     color: "#374151",
-    marginBottom: 4,
+    marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 13,
     color: "#6B7280",
+    textAlign: "center",
+    lineHeight: 18,
   },
 });
