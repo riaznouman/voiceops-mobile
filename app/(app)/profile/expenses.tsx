@@ -122,7 +122,7 @@ export default function ExpensesScreen() {
           </View>
         ) : groups.length === 0 ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>No expenses yet.</Text>
+            <Text style={styles.emptyText}>No expenses logged yet. Tap Add expense to record one.</Text>
           </View>
         ) : (
           groups.map((group) => (

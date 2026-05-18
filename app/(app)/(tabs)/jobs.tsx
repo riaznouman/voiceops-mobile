@@ -104,9 +104,9 @@ export default function JobsScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No jobs assigned yet</Text>
+            <Text style={styles.emptyText}>No jobs yet</Text>
             <Text style={styles.emptySubtext}>
-              Pull down to refresh.
+              When a manager assigns you a job it will show up here. Pull down to refresh.
             </Text>
           </View>
         }

@@ -118,7 +118,7 @@ export default function TimesheetsScreen() {
           </View>
         ) : groups.length === 0 ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>No hours logged yet.</Text>
+            <Text style={styles.emptyText}>No hours logged yet. Tap Add entry to log your time.</Text>
           </View>
         ) : (
           groups.map((group) => (
