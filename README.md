@@ -28,7 +28,71 @@ The VoiceOps Mobile App is the field technician's companion application built wi
 
 ## Getting Started
 
-Setup instructions will be added once the Expo project scaffold is created.
+### Install
+
+```
+npm install
+```
+
+Create a `.env` file in the project root for local development:
+
+```
+EXPO_PUBLIC_API_URL=http://<your-lan-ip>:3000
+```
+
+Run the app in development:
+
+```
+npm start
+```
+
+## Production Builds
+
+Production builds use **EAS Build** (Expo's cloud build service). The
+production API URL (`https://voiceops-fsm.vercel.app`) is set inside
+`eas.json` for the `preview` and `production` profiles, so it gets
+baked into the build.
+
+### One-time setup
+
+```
+npx eas-cli login
+```
+
+The EAS project id is already set in `app.config.ts` under
+`extra.eas.projectId`, so no `eas init` is needed.
+
+### Android APK (for testing / installing on phones)
+
+```
+npm run build:apk
+```
+
+This runs the `preview` profile which produces an installable `.apk`
+pointing at the production API. Download link is shown when the build
+finishes.
+
+### Android App Bundle (for Play Store)
+
+```
+npm run build:android
+```
+
+Produces an `.aab` from the `production` profile.
+
+### iOS
+
+For TestFlight / App Store (needs an Apple Developer account):
+
+```
+npm run build:ios
+```
+
+For a build that runs on the iOS Simulator (no Apple account needed):
+
+```
+npm run build:ios-sim
+```
 
 ## License
 
