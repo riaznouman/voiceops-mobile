@@ -35,7 +35,7 @@ import { API_BASE_URL } from "../../../../src/config/env";
 
 function resolveAssetUrl(path: string | null | undefined): string | null {
   if (!path) return null;
-  if (/^https?:\/\//i.test(path)) return path;
+  if (/^(https?:|data:)/i.test(path)) return path;
   return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
